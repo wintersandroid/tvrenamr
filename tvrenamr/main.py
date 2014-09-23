@@ -214,7 +214,7 @@ class TvRenamr(object):
                 self.lookup = lib(*args)  # assign to self for use in format_show_name
                 break  # first library worked - nothing to see here
             except (errors.EmptyEpisodeTitleException, errors.EpisodeNotFoundException,
-                    errors.InvalidXMLException, errors.NoNetworkConnectionException,
+                    errors.InvalidXMLException, errors.NetworkException,
                     errors.ShowNotFoundException) as e:
                 if lib == libraries[-1]:
                     raise errors.NoMoreLibrariesException(lib, e)
@@ -352,7 +352,7 @@ class TvRenamr(object):
             return series + r"\.[Ss]?" + season + r"[XxEe]?" + episode + second_episode
 
         if not partial and not ('%n' in regex or '%s' in regex or '%e' in regex):
-            raise errors.IncorrectCustomRegularExpressionSyntaxException(regex)
+            raise errors.IncorrectRegExpException(regex)
 
         # series name
         regex = regex.replace('%n', series)

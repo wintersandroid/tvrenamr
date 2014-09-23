@@ -2,10 +2,10 @@ import os
 
 from mock import patch
 from pytest import raises
-from tvrenamr.errors import (EpisodeAlreadyExistsInDirectoryException,
+from tvrenamr.errors import (PathExistsException,
                              MissingInformationException,
                              NoMoreLibrariesException,
-                             IncorrectCustomRegularExpressionSyntaxException,
+                             IncorrectRegExpException,
                              UnexpectedFormatException)
 from tvrenamr.main import File
 
@@ -28,11 +28,11 @@ class TestExceptionsAreRaised(BaseTest):
         filename = 'The Big Bang Theory - 301 - The Electric Can Opener Fluctuation'
         existing_path = os.path.join(self.files, filename)
         with open(existing_path, 'w'):
-            with raises(EpisodeAlreadyExistsInDirectoryException):
+            with raises(PathExistsException):
                 self.tv.rename(fn, existing_path)
 
     def test_custom_syntax_snippets_missing_raises_exception(self):
-        with raises(IncorrectCustomRegularExpressionSyntaxException):
+        with raises(IncorrectRegExpException):
             self.tv.extract_details_from_file('chuck.s02e05.avi', '.')
 
     def test_missing_show_name_raises_missing_information_exception(self):
