@@ -16,18 +16,6 @@ from .libraries import TheTvDb
 log = logging.getLogger('Core')
 
 
-def clean_name(filename, before=':', after=','):
-    """
-    Cleans the string passed in.
-
-    A wrapper of Python's str.replace() with the idea of making the string
-    safe for all file systems, but not using the horrible \ character.
-    Also allows the user to specify the new characters to be used.
-
-    """
-    return filename.replace(before, after)
-
-
 class Episode(object):
 
     def __init__(self, _file, number):
@@ -383,6 +371,7 @@ class TvRenamr(object):
             return show_name
         log.debug("Moving leading 'The' to end of: {0}".format(show_name))
         return show_name[4:] + ', The'
+
     def _santise_filename(self, filename):
         """
         Remove bits of the filename that cause a problem.
