@@ -89,6 +89,15 @@ class MissingInformationException(Exception):
         log.error('{0} is required to rename files.'.format(err))
 
 
+class NoMoreLibrariesException(Exception):
+    """
+    All libraries have returned invalid XML.
+    """
+    def __init__(self, lib, lib_err):
+        # TODO: display the error of the last lib
+        log.error('No libraries left to fall back to.')
+
+
 class OutputFormatMissingSyntaxException(Exception):
     """
     The output format string is missing syntax.
@@ -114,6 +123,17 @@ class ShowNotFoundException(Exception):
     """
     def __init__(self, library, show):
         log.error('"{0}" could not be found on {1}'.format(show, library))
+
+
+class ShowNotInConfigException(Exception):
+    """
+    The specified show wasn't found in the exceptions list
+
+    :param show: The show name not found.
+    """
+    def __init__(self, show):
+        log.debug('"{0}" is not in the Config. Falling back on name extracted from'
+                  ' the filename'.format(show))
 
 
 class ShowNotInExceptionsList(Exception):

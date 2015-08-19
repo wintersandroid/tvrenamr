@@ -6,8 +6,6 @@ import sys
 
 from .config import Config
 from .errors import *
-from .history import parse_history
-from .libraries import TheTvDb
 from .logs import start_logging
 from .main import File, TvRenamr
 from .options import OptionParser
@@ -42,7 +40,7 @@ def build_file_list(paths, recursive=False, ignore_filelist=()):
             for root, dirs, files in os.walk(glob):
                 for fname in files:
                     file_path = os.path.join(root, fname)
-                    if file_path not in ignore_filelist:
+                    if not file_path in ignore_filelist:
                         file_list.append(file_path)
 
                 if not recursive:
@@ -67,43 +65,30 @@ def get_config(path=None):
     return Config(location)
 
 
-def rename(path, options):
+def rename(path, config, options):
     working, filename = os.path.split(path)
     try:
-        tv = TvRenamr(working, options.debug, options.dry, options.cache)
+        tv = TvRenamr(working, config, options.debug, options.dry, options.cache)
 
         _file = File(**tv.extract_details_from_file(filename, user_regex=options.regex))
         # TODO: Warn setting season & episode will override *all* episodes
         _file.user_overrides(options.show_name, options.season, options.episode)
         _file.safety_check()
 
-        config = get_config(options.config)
-
         for episode in _file.episodes:
-            canonical = config.get('canonical', show=_file.show_name,
-                default=episode._file.show_name, override=options.canonical)
+            episode.title = tv.retrieve_episode_title(episode, library=options.library,
+                                                      canonical=options.canonical)
 
-            ep_kwargs = {'library': TheTvDb, 'canonical': canonical}
-            episode.title = tv.retrieve_episode_title(episode, **ep_kwargs)
+        _file.show_name = tv.format_show_name(_file.show_name, the=options.the,
+                                              override=options.show_override)
 
-        show = config.get_output(_file.show_name, override=options.show_override)
-        the = config.get('the', show=_file.show_name, override=options.the)
-        _file.show_name = tv.format_show_name(show, the=the)
+        _file.set_output_format(options.output_format, config)
 
-        _file.set_output_format(config.get('format', show=_file.show_name,
-            default=_file.output_format, override=options.output_format))
-
-        organise = config.get('organise', show=_file.show_name,
-            default=False, override=options.organise)
-        rename_dir = config.get('renamed', show=_file.show_name,
-            default=working, override=options.rename_dir)
-        specials_folder = config.get('specials_folder', show=_file.show_name,
-            default='Season 0', override=options.specials_folder)
         path = tv.build_path(
             _file,
-            rename_dir=rename_dir,
-            organise=organise,
-            specials_folder=specials_folder,
+            rename_dir=options.rename_dir,
+            organise=options.organise,
+            specials_folder=options.specials_folder,
         )
 
         tv.rename(filename, path)
@@ -144,9 +129,6 @@ def run():
         options.log_level = 10
     start_logging(options.log_file, options.log_level, options.quiet)
 
-    if options.history:
-        return parse_history(options.log_file)
-
     # use current directory if no args specified
     if not args:
         log.debug('No file or directory specified, using current directory')
@@ -156,12 +138,14 @@ def run():
     except IOError as e:
         parser.error("'{0}' is not a file or directory.".format(e))
 
+    config = get_config(options.config)
+
     if options.dry or options.debug:
         start_dry_run()
 
     # kick off a rename for each file in the list
     for path in files:
-        rename(path, options)
+        rename(path, config, options)
 
         # if we're not doing a dry run add a blank line for clarity
         if not (options.debug and options.dry):

@@ -2,6 +2,7 @@ import collections
 import logging
 import sys
 
+from .errors import ShowNotInConfigException
 if sys.version_info[0] == 3:
     from .vendor import yaml
 else:
@@ -9,66 +10,46 @@ else:
 
 
 class Config(object):
-    def __init__(self, config=None, show=None):
+
+    def __init__(self, config=None):
         self.log = logging.getLogger('tvrenamr.config')
 
         self.config = self._load_config(config)
-        self.show = show
 
         self.log.debug('Config loaded')
 
-    def get(self, key, show=None, default=None, override=None):
+        self.log.debug('Defaults retrieved')
+
+    def get(self, show, option, default=None):
         """
-        Get a configuration option
+        Get a configuration option from the config
 
-        This method is a convenient wrapper for asking for a config value in
-        one place.
-
-        At a higher level options are picked in this order:
-         * cli
-         * config
-         * filename
-
-        Internally this is handled as:
-         * Override Option
-           Picked first allowing a command line option to be passed in and used
-           with the highest priority.
-
-         * Show Specific Config
-           The key is looked up under the show name in the yaml file. If this
-           lookup fails the lowercased version of the show name is also tried.
-
-         * Default Config
-           The key is looked up in the defaults section of the yaml file.
-
-         * Default Option
-           If all the other options fail the default option passed into this
-           method is returned as a last resort.
+        This is a wrapper around the dict we build from the actual config
+        file that does some extra checking:
+            * Look for the option in a show
+            * Look for the option in a lowercased show
+            * Look for the option in the defaults
+            * return/error?
         """
-        if override is not None:
-            return override
-
-        if show is None and self.show is None:
-            raise Exception('You must provide a show name to use this method')
-
         try:
-            return self.config[show][key]
-        except KeyError:
+            return self.config[show][option]
+        except (KeyError, TypeError):
             try:
-                return self.config[show.lower()][key]
-            except KeyError:
+                return self.config[show.lower()][option]
+            except (KeyError, TypeError):
                 try:
-                    return self.config['defaults'][key]
-                except KeyError:
+                    return self.config['defaults'][option]
+                except (KeyError, TypeError):
                     return default
 
-    def get_output(self, show, override=None):
-        output = self.get(show, 'output', override=override)
-
-        if output is None:
-            output = self.get(show, 'canonical', override=override)
-
-        return output
+    def get_output(self, show):
+        try:
+            return self.config[show.lower()]['output']
+        except (KeyError, TypeError):
+            try:
+                return self.config[show.lower()]['canonical']
+            except (KeyError, TypeError):
+                raise ShowNotInConfigException(show)
 
     def _load_config(self, config):
         if config is None:

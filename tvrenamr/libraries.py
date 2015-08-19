@@ -19,8 +19,8 @@ class BaseLibrary(object):
     def __init__(self, show, season, episode, cache):
         self.cache = cache
         self.show = show
-        self.season = season.lstrip('0')
-        self.episode = episode.lstrip('0')
+        self.season = season
+        self.episode = episode
 
         self.log.info('Searching: {0}'.format(self.show))
         self.set_show_id()
@@ -149,3 +149,42 @@ class TheTvDb(BaseLibrary):
             self.log.debug('Series chosen: {0}'.format(show))
             return name.findtext('seriesid'), show
 
+
+class TvRage(BaseLibrary):
+    log = logging.getLogger('Tv Rage')
+    url_base = 'http://services.tvrage.com/feeds/'
+
+    def build_episode_url(self):
+        url_episode = 'full_show_info.php?sid='
+        return '{0}{1}{2}'.format(self.url_base, url_episode, self.show_id)
+
+    def build_id_url(self, quoted_show):
+        url_series = 'search.php?show='
+        return '{0}{1}{2}'.format(self.url_base, url_series, quoted_show)
+
+    def get_episode_title_from_xml(self, xml):
+        # In a single digit episode number add a zero
+        if len(self.episode) == 1 and self.episode[:1] != '0':
+            self.episode = '0' + self.episode
+
+        episode = None
+        for s in xml.find('Episodelist'):
+            if s.get('no') == self.season:
+                for e in s.findall('episode'):
+                    if e.find('seasonnum').text == self.episode:
+                        episode = e.find('title').text
+
+        if not episode:
+            args = (self.log.name, self.show, self.season, self.episode)
+            raise errors.EpisodeNotFoundException(*args)
+
+        return episode
+
+    def get_show_id_from_xml(self, xml):
+        for name in xml.findall('show'):
+            show = name.find('name').text
+            if show.lower() != self.show.lower():
+                raise errors.ShowNotFoundException(self.log.name, self.show)
+
+            self.log.debug('Series chosen {0}'.format(self.show))
+            return name.find('showid').text, show

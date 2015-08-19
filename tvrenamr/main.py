@@ -4,16 +4,23 @@ import os
 import re
 import shutil
 
-try:
-    from collections import OrderedDict
-except ImportError:  # python 2
-    from tvrenamr.vendor.ordereddict import OrderedDict
-
 from . import errors
-from .libraries import TheTvDb
+from .libraries import TheTvDb, TvRage
 
 
 log = logging.getLogger('Core')
+
+
+def clean_name(filename, before=':', after=','):
+    """
+    Cleans the string passed in.
+
+    A wrapper of Python's str.replace() with the idea of making the string
+    safe for all file systems, but not using the horrible \ character.
+    Also allows the user to specify the new characters to be used.
+
+    """
+    return filename.replace(before, after)
 
 
 class Episode(object):
@@ -115,8 +122,13 @@ class File(object):
             if e.number is None:
                 raise errors.MissingInformationException('An episode number')
 
-    def set_output_format(self, user_format):
-        self.output_format = user_format
+    def set_output_format(self, user_format, config):
+        if user_format is None:
+            config_format = config.get(self.show_name, 'format')
+            if config_format is not None:
+                self.output_format = config_format
+        else:
+            self.output_format = user_format
 
     def user_overrides(self, show_name, season, episode):
         if show_name:
@@ -134,11 +146,12 @@ class File(object):
 
 
 class TvRenamr(object):
-    def __init__(self, working_dir, debug=False, dry=False, cache=True):
+    def __init__(self, working_dir, config, debug=False, dry=False, cache=True):
         self.cache = cache
         self.working_dir = working_dir
         self.dry = dry
         self.debug = debug
+        self.config = config
 
     def remove_part_from_multiple_episodes(self, show_name):
         """Remove the string "Part " from a filename.
@@ -160,11 +173,6 @@ class TvRenamr(object):
         already covered.
 
         """
-        try:
-            fn = fn.decode('utf-8')
-        except AttributeError:  # python 3
-            pass
-
         fn = self._santise_filename(fn)
         log.log(22, 'Renaming: {0}'.format(fn))
 
@@ -177,40 +185,73 @@ class TvRenamr(object):
 
         return self._build_credentials(fn, matches)
 
-    def retrieve_episode_title(self, episode, library=None, canonical=None):
+    def retrieve_episode_title(self, episode, library='thetvdb', canonical=None):
         """Retrieves the title of a given episode.
 
         The series name, season and episode numbers must be specified to get
         the episode's title. The library specified by the user will be used
         first but will fall back to the other library if an error occurs.
-        """
-        if canonical is not None:
-            episode._file.show_name = canonical
 
+        The first library defaults to The Tv DB.
+
+        """
+        libraries = [
+            TheTvDb,
+            TvRage
+        ]
+        [libraries.insert(0, libraries.pop(libraries.index(lib)))
+            for lib in libraries if lib.__name__.lower() == library]
+
+        # TODO: Make this bit not suck.
+        if canonical:
+            episode._file.show_name = canonical
+        else:
+            episode._file.show_name = self.config.get(episode._file.show_name,
+                                                      'canonical',
+                                                      episode._file.show_name)
         log.debug('Show Name: {0}'.format(episode._file.show_name))
 
-        args = (episode._file.show_name, episode._file.season, episode.number, self.cache)
-        self.lookup = TheTvDb(*args)  # assign to self for use in format_show_name
+        # loop the libraries until one works
+        for lib in libraries:
+            try:
+                log.debug('Using {0}'.format(lib.__name__))
+                args = (episode._file.show_name, episode._file.season, episode.number, self.cache)
+                self.lookup = lib(*args)  # assign to self for use in format_show_name
+                break  # first library worked - nothing to see here
+            except (errors.EmptyEpisodeTitleException, errors.EpisodeNotFoundException,
+                    errors.InvalidXMLException, errors.NoNetworkConnectionException,
+                    errors.ShowNotFoundException) as e:
+                if lib == libraries[-1]:
+                    raise errors.NoMoreLibrariesException(lib, e)
+                continue
 
         log.info('Episode: {0}'.format(self.lookup.title))
         return self.lookup.title
 
-    def format_show_name(self, show_name, the=False):
-        if show_name is None:
+    def format_show_name(self, show_name, the=None, override=None):
+        if the is None:
+            the = self.config.get(show_name, 'the')
+
+        try:
+            show_name = self.config.get_output(show_name)
+            log.debug('Using config output name: {0}'.format(show_name))
+        except errors.ShowNotInConfigException:
             show_name = self.lookup.show
             msg = 'Using the formatted show name retrieved by the library: {0}'
             log.debug(msg.format(show_name))
-        else:
-            log.debug('Using config output name: {0}'.format(show_name))
+
+        if override is not None:
+            show_name = override
+            log.debug('Overrode show name with: {0}'.format(show_name))
 
         if the is True:
             show_name = self._move_leading_the_to_trailing_the(show_name)
-
+#        show_name = self._santise_filename(show_name)
         log.debug('Final show name: {0}'.format(show_name))
 
         return show_name
 
-    def build_path(self, _file, rename_dir, organise=False, specials_folder=None):
+    def build_path(self, _file, rename_dir=None, organise=None, specials_folder=None):
         """Build the full destination path and filename of the renamed file.
 
         By default the format is:
@@ -224,13 +265,18 @@ class TvRenamr(object):
         season and show folders, i.e. Show/Season 1/episodes
 
         """
+        if rename_dir is None:
+            rename_dir = self.config.get(_file.show_name, 'renamed', self.working_dir)
+        rename_dir = self._santise_filename(rename_dir)
+        if organise is None:
+            organise = self.config.get(_file.show_name, 'organise')
         if organise is True:
             args = [rename_dir, _file.show_name, _file.season, specials_folder]
             rename_dir = self._build_organise_path(*args)
-
+        
         log.log(22, 'Directory: {0}'.format(rename_dir))
-
-        path = os.path.join(rename_dir, _file.name)
+        filename=self._santise_filename(_file.name)
+        path = os.path.join(rename_dir, filename).replace('..','.');
         log.debug('Full path: {0}'.format(path))
 
         return path
@@ -291,10 +337,13 @@ class TvRenamr(object):
         Show name and season number of an episode dictate the folder structure.
         """
         season = 'Season {0}'.format(season_number)
-        if season_number is 0 and specials is not None:  # specials folder
-            season = specials
+        if season_number is 0:  # specials folder
+            season = specials or self.config.get(show_name, 'specials_folder')
+        show_name = show_name.rstrip('.')
 
         path = os.path.join(start_path, show_name, season)
+        path = self._santise_filename(path)
+        log.debug('path sanitised to: ' + path);
 
         if not (os.path.exists(path) or self.dry or self.debug):
             os.makedirs(path)
@@ -371,7 +420,6 @@ class TvRenamr(object):
             return show_name
         log.debug("Moving leading 'The' to end of: {0}".format(show_name))
         return show_name[4:] + ', The'
-
     def _santise_filename(self, filename):
         """
         Remove bits of the filename that cause a problem.
@@ -381,7 +429,8 @@ class TvRenamr(object):
         """
         items = (
             ('_', '.'),
-            (' ', '.'),
+            (':', ''),
+            ('..', '.'),
             ('.720p', ''),
             ('.720', ''),
             ('.1080p', ''),
