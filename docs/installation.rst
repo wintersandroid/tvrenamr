@@ -6,18 +6,23 @@ Installation
 Requirements
 ------------
 
-* Python 2.6+
-* PyYaml
-* `Requests`_
+* Python 2.7+, Python 3.3+
 * The Interwebs
-
-.. _Requests: http://docs.python-requests.org/en/latest/index.html
 
 
 Python Package Index
 --------------------
 
-Install Tv Renamr with your favourite Python package manager:
+Install Tv Renamr with your favourite Python package manager.
+We recommend pipsi_ to avoid polluting your global env.
+
+.. _pipsi: https://github.com/mitsuhiko/pipsi
+
+.. code-block:: bash
+
+    pipsi install tvrenamr
+
+However if you're more comfortable with pip that will also work:
 
 .. code-block:: bash
 
@@ -32,17 +37,11 @@ python path.
 
 .. note::
 
-    If you don't have pip install you'll get an error message. Instructions on
+    If you don't have pip installed you'll get an error message. Instructions on
     how to install pip can be found `here`_.
 
 .. _here: http://www.pip-installer.org/en/latest/installing.html
 
-Windows
-~~~~~~~
-
-Due to a problem with easy_install/pip and Tv Renamr's option parsing code it
-isn't possible to use easy_install or pip for installation just yet, but it
-might get fixed in the future.
 
 Source: GitHub
 --------------
@@ -51,7 +50,7 @@ Source: GitHub
 
     git clone https://github.com/ghickman/tvrenamr.git
     cd tvrenamr
-    python setup.py install
+    pip install -e .
 
 .. warning::
 

@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
+
 import logging
 import os
 import re
 import shutil
 
 from . import errors
-from .libraries import TheTvDb, TvRage
-
+from .tvdb import TVDB
 
 log = logging.getLogger('Core')
 
@@ -25,8 +25,8 @@ def clean_name(filename, before=':', after=','):
 
 class Episode(object):
 
-    def __init__(self, _file, number):
-        self._file = _file  # cache reverse reference to parent object
+    def __init__(self, file_, number):
+        self.file_ = file_  # cache reverse reference to parent object
         self.number = number
 
     def __getattr__(self, name):
@@ -34,7 +34,7 @@ class Episode(object):
             msg = 'Missing episode: Set it with --episode or use %e in your --regex string'
             raise AttributeError(msg)
 
-        msg = "'{0}' object has no attribute '{1}'".format(self.__class__.__name__, name)
+        msg = "'{}' object has no attribute '{}'".format(self.__class__.__name__, name)
         raise AttributeError(msg)
 
     def __getattribute__(self, item):
@@ -43,14 +43,14 @@ class Episode(object):
         it with a leading zero.
         """
         if item is 'episode_2':
-            return '0{0}'.format(self.number)
+            return '0{}'.format(self.number)
         return object.__getattribute__(self, item)
 
     def __repr__(self):
-        return 'Episode: {0} (season {1})'.format(self.number, self._file.season)
+        return 'Episode: {} (season {})'.format(self.number, self.file_.season)
 
     def __str__(self):
-        return '{0} - {1}'.format(self.number, self.title)
+        return '{} - {}'.format(self.number, self.title)
 
 
 class File(object):
@@ -59,7 +59,7 @@ class File(object):
     def __init__(self, show_name=None, season=None, episodes=(), extension=''):
         self.show_name = show_name
         self.season = season
-        self.episodes = [Episode(_file=self, number=i) for i in episodes]
+        self.episodes = [Episode(file_=self, number=i) for i in episodes]
         self.extension = extension
 
     def __repr__(self):
@@ -97,7 +97,7 @@ class File(object):
         titles = [e.title for e in self.episodes]
 
         # Check the titles aren't all the same with different (x) parts
-        suffixes = tuple('({0})'.format(i+1) for i in range(len(titles)))
+        suffixes = tuple('({})'.format(i + 1) for i in range(len(titles)))
         if any([t.endswith(suffixes) for t in titles]):
             stripped_titles = set([t[:-4] for t in titles])
             if len(stripped_titles) is 1:
@@ -142,7 +142,7 @@ class File(object):
                 for e in self.episodes:
                     e.number = int(episode)
             else:
-                self.episodes = [Episode(_file=self, number=episode)]
+                self.episodes = [Episode(file_=self, number=episode)]
 
 
 class TvRenamr(object):
@@ -163,7 +163,7 @@ class TvRenamr(object):
         log.debug('Removing Part from episode name')
         return show_name.replace('(Part ', '(')
 
-    def extract_details_from_file(self, fn, user_regex=None):
+    def extract_details_from_file(self, fn, user_regex=None, partial=False):
         """Using a regular expression extract information from the filename passed in.
 
         Looks at the file given and extracts from it the show title, it's
@@ -173,60 +173,39 @@ class TvRenamr(object):
         already covered.
 
         """
-        fn = self._santise_filename(fn)
-        log.log(22, 'Renaming: {0}'.format(fn))
+        try:
+            fn = fn.decode('utf-8')
+        except AttributeError:  # python 3
+            pass
 
-        regex = self._build_regex(user_regex)
+        fn = self._sanitise_filename(fn)
+        log.log(22, 'Renaming: %s', fn)
+
+        regex = self._build_regex(user_regex, partial=partial)
         matches = re.match(regex, fn)
         if not matches:
             raise errors.UnexpectedFormatException(fn)
 
-        log.debug('Renaming using: {0}'.format(regex))
+        log.debug('Renaming using: %s', regex)
 
         return self._build_credentials(fn, matches)
 
-    def retrieve_episode_title(self, episode, library='thetvdb', canonical=None):
+    def retrieve_episode_title(self, episode, canonical=None, override=None):
         """Retrieves the title of a given episode.
 
         The series name, season and episode numbers must be specified to get
-        the episode's title. The library specified by the user will be used
-        first but will fall back to the other library if an error occurs.
-
-        The first library defaults to The Tv DB.
-
+        the episode's title.
         """
-        libraries = [
-            TheTvDb,
-            TvRage
-        ]
-        [libraries.insert(0, libraries.pop(libraries.index(lib)))
-            for lib in libraries if lib.__name__.lower() == library]
+        if canonical is not None:
+            episode.file_.show_name = canonical
 
-        # TODO: Make this bit not suck.
-        if canonical:
-            episode._file.show_name = canonical
-        else:
-            episode._file.show_name = self.config.get(episode._file.show_name,
-                                                      'canonical',
-                                                      episode._file.show_name)
-        log.debug('Show Name: {0}'.format(episode._file.show_name))
+        log.debug('Show Name: %s', episode.file_.show_name)
 
-        # loop the libraries until one works
-        for lib in libraries:
-            try:
-                log.debug('Using {0}'.format(lib.__name__))
-                args = (episode._file.show_name, episode._file.season, episode.number, self.cache)
-                self.lookup = lib(*args)  # assign to self for use in format_show_name
-                break  # first library worked - nothing to see here
-            except (errors.EmptyEpisodeTitleException, errors.EpisodeNotFoundException,
-                    errors.InvalidXMLException, errors.NoNetworkConnectionException,
-                    errors.ShowNotFoundException) as e:
-                if lib == libraries[-1]:
-                    raise errors.NoMoreLibrariesException(lib, e)
-                continue
+        args = (episode.file_.show_name, episode.file_.season, episode.number, self.cache)
+        self.lookup = TVDB(*args)  # assign to self for use in format_show_name
 
-        log.info('Episode: {0}'.format(self.lookup.title))
-        return self.lookup.title
+        log.info('Episode: %s', self.lookup.title)
+        return override or self.lookup.title
 
     def format_show_name(self, show_name, the=None, override=None):
         if the is None:
@@ -237,8 +216,9 @@ class TvRenamr(object):
             log.debug('Using config output name: {0}'.format(show_name))
         except errors.ShowNotInConfigException:
             show_name = self.lookup.show
-            msg = 'Using the formatted show name retrieved by the library: {0}'
-            log.debug(msg.format(show_name))
+            log.debug('Using the formatted show name retrieved from The TvDb')
+        else:
+            log.debug('Using config output name: %s', show_name)
 
         if override is not None:
             show_name = override
@@ -246,8 +226,8 @@ class TvRenamr(object):
 
         if the is True:
             show_name = self._move_leading_the_to_trailing_the(show_name)
-#        show_name = self._santise_filename(show_name)
-        log.debug('Final show name: {0}'.format(show_name))
+
+        log.debug('Final show name: %s', show_name)
 
         return show_name
 
@@ -273,11 +253,11 @@ class TvRenamr(object):
         if organise is True:
             args = [rename_dir, _file.show_name, _file.season, specials_folder]
             rename_dir = self._build_organise_path(*args)
-        
-        log.log(22, 'Directory: {0}'.format(rename_dir))
+
+        log.log(22, 'Directory: %s', rename_dir)
         filename=self._santise_filename(_file.name)
-        path = os.path.join(rename_dir, filename).replace('..','.');
-        log.debug('Full path: {0}'.format(path))
+        path = os.path.join(rename_dir, _file.name)
+        log.debug('Full path: %s', path)
 
         return path
 
@@ -290,7 +270,7 @@ class TvRenamr(object):
 
         """
         if os.path.exists(destination_filepath):
-            raise errors.EpisodeAlreadyExistsInDirectoryException(destination_filepath)
+            raise errors.PathExistsException(destination_filepath)
 
         log.debug(os.path.join(self.working_dir, current_filepath))
         log.debug(destination_filepath)
@@ -298,7 +278,7 @@ class TvRenamr(object):
             source_filepath = os.path.join(self.working_dir, current_filepath)
             shutil.move(source_filepath, destination_filepath)
         destination_file = os.path.split(destination_filepath)[1]
-        log.log(26, 'Renamed: "{0}"'.format(destination_file))
+        log.log(26, 'Renamed: "%s"', destination_file)
         return destination_filepath
 
     def _build_credentials(self, fn, matches):
@@ -326,8 +306,8 @@ class TvRenamr(object):
             'extension': os.path.splitext(fn)[1]
         })
 
-        msg = ', '.join('{0}: {1}'.format(key, value) for key, value in details.items())
-        log.debug('Filename yielded: {0}'.format(msg))
+        msg = ', '.join('{}: {}'.format(key, value) for key, value in details.items())
+        log.debug('Filename yielded: %s', msg)
         return details
 
     def _build_organise_path(self, start_path, show_name, season_number, specials=None):
@@ -336,9 +316,9 @@ class TvRenamr(object):
 
         Show name and season number of an episode dictate the folder structure.
         """
-        season = 'Season {0}'.format(season_number)
-        if season_number is 0:  # specials folder
-            season = specials or self.config.get(show_name, 'specials_folder')
+        season = 'Season {}'.format(season_number)
+        if season_number is 0 and specials is not None:  # specials folder
+            season = specials
         show_name = show_name.rstrip('.')
 
         path = os.path.join(start_path, show_name, season)
@@ -373,7 +353,7 @@ class TvRenamr(object):
             return series + r"\.[Ss]?" + season + r"[XxEe]?" + episode + second_episode
 
         if not partial and not ('%n' in regex or '%s' in regex or '%e' in regex):
-            raise errors.IncorrectCustomRegularExpressionSyntaxException(regex)
+            raise errors.IncorrectRegExpException(regex)
 
         # series name
         regex = regex.replace('%n', series)
@@ -383,30 +363,30 @@ class TvRenamr(object):
         if '%s{' in regex:
             log.debug('Season digit number found')
             r = regex.split('%s{')[1][:1]
-            log.debug('Specified {0} season digits'.format(r))
+            log.debug('Specified % season digits', r)
             s = season.replace('1,2', r)
             regex = regex.replace('%s{' + r + '}', s)
-            log.debug('Season regex set: {0}'.format(s))
+            log.debug('Season regex set: %s', s)
 
         # %s
         if '%s' in regex:
             regex = regex.replace('%s', season)
-            log.debug('Default season regex set: {0}'.format(regex))
+            log.debug('Default season regex set: %s', regex)
 
         # episode number
         # %e{n}
         if '%e{' in regex:
             log.debug('User set episode digit number found')
             r = regex.split('%e{')[1][:1]
-            log.debug('User specified {0} episode digits'.format(r))
+            log.debug('User specified %s episode digits', r)
             e = episode.replace('2', r)
             regex = regex.replace('%e{' + r + '}', e)
-            log.debug('Episode regex set: {0}'.format(e))
+            log.debug('Episode regex set: %s', e)
 
         # %e
         if '%e' in regex:
             regex = regex.replace('%e', episode)
-            log.debug('Default episode regex set: {0}'.format(regex))
+            log.debug('Default episode regex set: %s', regex)
 
         return regex
 
@@ -418,9 +398,10 @@ class TvRenamr(object):
         """
         if not(show_name.startswith('The ')):
             return show_name
-        log.debug("Moving leading 'The' to end of: {0}".format(show_name))
+        log.debug("Moving leading 'The' to end of: %s", show_name)
         return show_name[4:] + ', The'
-    def _santise_filename(self, filename):
+
+    def _sanitise_filename(self, filename):
         """
         Remove bits of the filename that cause a problem.
 

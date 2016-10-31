@@ -7,17 +7,6 @@ log = logging.getLogger('Error')
 error = 'Alert: '
 
 
-class AlreadyNamedException(Exception):
-    """
-    Raised when the format of the file being passed in is the same as the
-    output format
-
-    :param fn: The file that is already in the correct naming format.
-    """
-    def __init__(self, fn):
-        log.error('Already in correct naming format: {0}'.format(fn))
-
-
 class EmptyEpisodeTitleException(Exception):
     """
     Raised when the episode XML document is returned but the name field is empty
@@ -25,39 +14,25 @@ class EmptyEpisodeTitleException(Exception):
     This is usually seen when a season is new enough that the episode names
     aren't fully known
     """
-    def __init__(self, library):
-        log.error('The episode name was not found. The record on {0} is likely '
-                  'incomplete.'.format(library))
-
-
-class EpisodeAlreadyExistsInDirectoryException(Exception):
-    """
-    Exception that is raised when a file with the same name as the renamed file
-    exists in the destination folder
-
-    :param fn: The destination file name.
-    :param dest: The destination directory.
-    """
-    def __init__(self, destination_path):
-        log.error('File already exists: {0}'.format(destination_path))
+    def __init__(self):
+        msg = 'The episode name was not found. The record on The TVDB is likely incomplete.'
+        log.error(msg)
 
 
 class EpisodeNotFoundException(Exception):
     """
-    Exception raised when an episode cannot be found in the database of
-    whichever library was used.
+    Exception raised when an episode cannot be found on The TVDB.
 
-    :param library: The library where the episode could't be found.
     :param show: The show name that was searched for.
     :param season: The season number that was searched for.
     :param episode: The episode number that was searched for.
     """
-    def __init__(self, library, show, season, episode):
-        args = (show, season, episode, library)
-        log.error('"{0} - {1}{2}" could not be found on {3}'.format(*args))
+    def __init__(self, show, season, episode):
+        msg = '"%s - %s%s" could not be found on TvDb'
+        log.error(msg, show, season, episode)
 
 
-class IncorrectCustomRegularExpressionSyntaxException(Exception):
+class IncorrectRegExpException(Exception):
     """
     The syntax used in a custom regular expression was incorrect.
 
@@ -65,19 +40,18 @@ class IncorrectCustomRegularExpressionSyntaxException(Exception):
     """
     def __init__(self, regex):
         log.error('The regular expression provided does not contain the '
-                  'required custom syntax.')
+                  'required custom syntax: %s', regex)
 
 
 class InvalidXMLException(Exception):
     """
-    Raised when the XML document retrieved from a library is empty.
+    Raised when the XML document retrieved from The TVDB is empty.
 
-    :param library: The library the exception was raised in.
     :param show: The show name.
     """
-    def __init__(self, library, show):
-        log.error('The XML file retrieved from {0} was empty or invalid while '
-                  'looking for {1}.'.format(library, show))
+    def __init__(self, show):
+        msg = 'The XML file retrieved from The TVDB was empty or invalid while looking for %s.'
+        log.error(msg, show)
         log.error('This could be indicative of a Show or Episode not being found.')
 
 
@@ -86,16 +60,20 @@ class MissingInformationException(Exception):
     Not enough information to rename a file
     """
     def __init__(self, err):
-        log.error('{0} is required to rename files.'.format(err))
+        log.error('%s is required to rename files.', err)
 
 
-class NoMoreLibrariesException(Exception):
+class NetworkException(Exception):
     """
-    All libraries have returned invalid XML.
+    Raised when no connection to The TVDB is detected
+
+    This will be raised if either The TVDB or the internet connection itself
+    is down.
     """
-    def __init__(self, lib, lib_err):
-        # TODO: display the error of the last lib
-        log.error('No libraries left to fall back to.')
+    def __init__(self):
+        msg = '%sTV Renamr could not connect to The TVDB. ' + \
+              'Please check your internet connection and try again.'
+        log.error(msg, error)
 
 
 class OutputFormatMissingSyntaxException(Exception):
@@ -105,35 +83,31 @@ class OutputFormatMissingSyntaxException(Exception):
     :param syntax: The syntax string required.
     """
     def __init__(self, syntax):
-        if len(syntax) > 1:
-            t = ', '
-            errors = t.join(syntax)
-        else:
-            errors = syntax[0]
-        log.error('The output format is missing the following format elements: '
-                  '{0}'.format(errors))
+        errors = ', '.join(syntax)
+        msg = 'The output format is missing the following format elements: %s'
+        log.error(msg, errors)
+
+
+class PathExistsException(Exception):
+    """
+    Exception that is raised when a file with the same name as the renamed file
+    exists in the destination folder
+
+    :param fn: The destination file name.
+    :param dest: The destination directory.
+    """
+    def __init__(self, destination_path):
+        log.error('File already exists: %s', destination_path)
 
 
 class ShowNotFoundException(Exception):
     """
-    Raised when a show cannot be found by the specified library.
+    Raised when a show cannot be found on The TVDB.
 
-    :param library: The library that was searched.
     :param show: The show name searched for.
     """
-    def __init__(self, library, show):
-        log.error('"{0}" could not be found on {1}'.format(show, library))
-
-
-class ShowNotInConfigException(Exception):
-    """
-    The specified show wasn't found in the exceptions list
-
-    :param show: The show name not found.
-    """
     def __init__(self, show):
-        log.debug('"{0}" is not in the Config. Falling back on name extracted from'
-                  ' the filename'.format(show))
+        log.error('"%s" could not be found on The TVDB', show)
 
 
 class ShowNotInExceptionsList(Exception):
@@ -143,29 +117,7 @@ class ShowNotInExceptionsList(Exception):
     :param show: The show name not found.
     """
     def __init__(self, show):
-        log.warning('{0} is not in the Exceptions list'.format(show))
-
-
-class NoLeadingTheException(Exception):
-    """
-    Raised when the file passed in has no leading The in the show name
-
-    :param show: The show name with no leading The.
-    """
-    def __init__(self, show):
-        log.warning('{0} has no leading The'.format(show))
-
-
-class NoNetworkConnectionException(Exception):
-    """
-    Raised when no connection to the desired library is detected
-
-    This will be raised if either the library or the internet connection itself
-    is down.
-    """
-    def __init__(self, library):
-        log.error('{0}TV Renamr could not connect to {1}. Please check your '
-                  'internet connection and try again.'.format(error, library))
+        log.warning('%s is not in the Exceptions list', show)
 
 
 class UnexpectedFormatException(Exception):
@@ -175,4 +127,4 @@ class UnexpectedFormatException(Exception):
     :param fn: The file name that was in an unexpected format.
     """
     def __init__(self, fn):
-        log.error('File in an unexpected format: {0}'.format(fn))
+        log.error('File in an unexpected format: %s', fn)
