@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import logging
 import os
 import urllib
+import traceback
 
 import requests
 from defusedxml.ElementTree import ParseError, fromstring
@@ -70,8 +71,11 @@ class TVDB(object):
         if not req.ok:
             raise errors.NetworkException()
         if self.cache:
-            with open(cache, 'w') as f:
-                f.write(req.text)
+            try:
+                with open(cache, 'w') as f:
+                    f.write(req.text.encode('utf8'))
+            except Exception as e:
+                print traceback.format_exc()
         return req.text
 
     def set_episode_title(self, url):
@@ -107,7 +111,7 @@ class TVDB(object):
             if not self.cache:
                 raise IOError
             with open(cache, 'r') as f:
-                xml = f.read()
+                xml = f.read().decode('utf8')
         except IOError:
             xml = self.request_show_id(cache)
 

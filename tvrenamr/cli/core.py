@@ -6,8 +6,6 @@ import functools
 import logging
 import sys
 
-sys.path.append('../..')
-
 import click
 
 from tvrenamr import errors
@@ -53,10 +51,10 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
     if debug:
         log_level = 10
     start_logging(log_file, log_level, quiet)
-    logger = functools.partial(log.log, level=26)
+    #logger = functools.partial(log.info, level=26)
 
     if dry_run or debug:
-        start_dry_run(logger)
+        start_dry_run(log)
 
     for current_dir, filename in build_file_list(paths, recursive, ignore_filelist):
         try:
@@ -97,7 +95,7 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
                 _file.show_name,
                 default=_file.output_format,
                 override=output_format
-            ))
+            ),config)
 
             organise = config.get(
                 'organise',
@@ -125,14 +123,14 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
             )
 
             tv.rename(filename, path)
-        except errors.NoNetworkConnectionException:
+        except errors.NetworkException:
             if dry_run or debug:
-                stop_dry_run(logger)
+                stop_dry_run(log)
             sys.exit(1)
         except (AttributeError,
                 errors.EmptyEpisodeTitleException,
                 errors.EpisodeNotFoundException,
-                errors.IncorrectCustomRegularExpressionSyntaxException,
+                errors.IncorrectRegExpException,
                 errors.InvalidXMLException,
                 errors.MissingInformationException,
                 errors.OutputFormatMissingSyntaxException,
@@ -153,9 +151,5 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
             log.info('')
 
     if dry_run or debug:
-        stop_dry_run(logger)
+        stop_dry_run(log)
 
-
-if __name__ == '__main__':
-    # sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(rename())

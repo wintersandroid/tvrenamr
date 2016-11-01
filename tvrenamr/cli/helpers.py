@@ -48,13 +48,13 @@ def sanitise_log(log, longest):
 
 
 def start_dry_run(logger):
-    logger('Dry Run beginning.')
-    logger('-' * 70)
-    logger('')
+    logger.info('Dry Run beginning.')
+    logger.info('---------------------------------------------------------------')
+    logger.info('')
 
 
 def stop_dry_run(logger):
-    logger('')
-    logger('-' * 70)
-    logger('Dry Run complete. No files were harmed in the process.')
-    logger('')
+    logger.info('')
+    logger.info('---------------------------------------------------------------')
+    logger.info('Dry Run complete. No files were harmed in the process.')
+    logger.info('')

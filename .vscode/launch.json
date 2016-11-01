@@ -20,9 +20,11 @@
             "request": "launch",
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
-            "program": "${workspaceRoot}/tvrenamr/cli/core.py",
+            "program": "${workspaceRoot}/tvr",
             "args": [
-                "--help"
+                "-d",
+                "-r",
+                "~/Temp/Chance.S01E01.720p.WEB.H264-DEFLATE[eztv].mkv"
             ],
             "console": "integratedTerminal",
             "debugOptions": [
