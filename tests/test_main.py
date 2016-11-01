@@ -65,7 +65,7 @@ class TestWithBigBang:
         assert os.path.split(path)[1] == filename
 
     def test_setting_an_episodes_format_as_season_episode_title_name(self, files, tv):
-        self._file.set_output_format('%s - %e - %t - %n%x')
+        self._file.output_format = '%s - %e - %t - %n%x'
         path = tv.build_path(self._file, rename_dir=files, organise=False)
         filename = '3 - 01 - The Electric Can Opener Fluctuation - The Big Bang Theory.mp4'
         assert os.path.split(path)[1] == filename
