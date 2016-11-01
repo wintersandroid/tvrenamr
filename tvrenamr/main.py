@@ -207,22 +207,12 @@ class TvRenamr(object):
         log.info('Episode: %s', self.lookup.title)
         return override or self.lookup.title
 
-    def format_show_name(self, show_name, the=None, override=None):
-        if the is None:
-            the = self.config.get(show_name, 'the')
-
-        try:
-            show_name = self.config.get_output(show_name)
-            log.debug('Using config output name: {0}'.format(show_name))
-        except errors.ShowNotInConfigException:
+    def format_show_name(self, show_name, the=False):
+        if show_name is None:
             show_name = self.lookup.show
             log.debug('Using the formatted show name retrieved from The TvDb')
         else:
             log.debug('Using config output name: %s', show_name)
-
-        if override is not None:
-            show_name = override
-            log.debug('Overrode show name with: {0}'.format(show_name))
 
         if the is True:
             show_name = self._move_leading_the_to_trailing_the(show_name)
@@ -247,7 +237,7 @@ class TvRenamr(object):
         """
         if rename_dir is None:
             rename_dir = self.config.get(_file.show_name, 'renamed', self.working_dir)
-        rename_dir = self._santise_filename(rename_dir)
+        rename_dir = self._sanitise_filename(rename_dir)
         if organise is None:
             organise = self.config.get(_file.show_name, 'organise')
         if organise is True:
@@ -255,7 +245,7 @@ class TvRenamr(object):
             rename_dir = self._build_organise_path(*args)
 
         log.log(22, 'Directory: %s', rename_dir)
-        filename=self._santise_filename(_file.name)
+        filename=self._sanitise_filename(_file.name)
         path = os.path.join(rename_dir, _file.name)
         log.debug('Full path: %s', path)
 
@@ -322,7 +312,7 @@ class TvRenamr(object):
         show_name = show_name.rstrip('.')
 
         path = os.path.join(start_path, show_name, season)
-        path = self._santise_filename(path)
+        path = self._sanitise_filename(path)
         log.debug('path sanitised to: ' + path);
 
         if not (os.path.exists(path) or self.dry or self.debug):

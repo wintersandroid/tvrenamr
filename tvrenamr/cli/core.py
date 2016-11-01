@@ -6,6 +6,8 @@ import functools
 import logging
 import sys
 
+sys.path.append('../..')
+
 import click
 
 from tvrenamr import errors
@@ -152,3 +154,8 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
 
     if dry_run or debug:
         stop_dry_run(logger)
+
+
+if __name__ == '__main__':
+    # sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(rename())

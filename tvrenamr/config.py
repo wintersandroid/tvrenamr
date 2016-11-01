@@ -2,23 +2,18 @@ import collections
 import logging
 import sys
 
-from .errors import ShowNotInConfigException
-if sys.version_info[0] == 3:
-    from .vendor import yaml
-else:
-    from .vendor import yaml2 as yaml
+import yaml
 
 
 class Config(object):
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, show=None):
         self.log = logging.getLogger('tvrenamr.config')
 
         self.config = self._load_config(config)
+        self.show = show
 
         self.log.debug('Config loaded')
-
-        self.log.debug('Defaults retrieved')
 
     def get(self, show, option, default=None):
         """
