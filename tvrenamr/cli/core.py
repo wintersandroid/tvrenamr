@@ -73,17 +73,17 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
 
             _canonical = ''
 
-            for episode in _file.episodes:
+            for _episode in _file.episodes:
                 _canonical = config.get(
                     'canonical',
                     _file.show_name,
-                    default=episode.file_.show_name,
+                    default=_episode.file_.show_name,
                     override=canonical
                 )
 
                 # TODO: Warn setting name will override *all* episodes
-                episode.title = tv.retrieve_episode_title(
-                    episode,
+                _episode.title = tv.retrieve_episode_title(
+                    _episode,
                     canonical=_canonical,
                     override=name,
                 )
