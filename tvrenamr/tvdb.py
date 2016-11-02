@@ -37,6 +37,7 @@ class TVDB(object):
 
     def get_cache_dir(self, show):
         show = show.lower().replace(' ', '_')  # sanitise show name
+        show = show.lower().replace(':', '_')  # sanitise show name
         module = self.__class__.__name__.lower()
         config_dir = os.path.expanduser('~/.tvrenamr')
         cache_dir = os.path.join(config_dir, 'cache', module, show)

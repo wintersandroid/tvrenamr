@@ -56,6 +56,8 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
     if dry_run or debug:
         start_dry_run(log)
 
+    config = get_config(config)
+
     for current_dir, filename in build_file_list(paths, recursive, ignore_filelist):
         try:
             tv = TvRenamr(current_dir, debug, dry_run, no_cache)
@@ -69,10 +71,10 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
             _file.user_overrides(show, season, episode)
             _file.safety_check()
 
-            config = get_config(config)
+            _canonical = ''
 
             for episode in _file.episodes:
-                canonical = config.get(
+                _canonical = config.get(
                     'canonical',
                     _file.show_name,
                     default=episode.file_.show_name,
@@ -82,7 +84,7 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
                 # TODO: Warn setting name will override *all* episodes
                 episode.title = tv.retrieve_episode_title(
                     episode,
-                    canonical=canonical,
+                    canonical=_canonical,
                     override=name,
                 )
 

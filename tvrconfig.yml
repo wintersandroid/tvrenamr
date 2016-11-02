@@ -1,0 +1,283 @@
+defaults:
+  format: '%n.S%s{2}E%e{2}.%t%x'
+  library: thetvdb
+  organise: true
+  renamed: /share/TV
+  the: false
+
+'24':
+  format: '%n - %s%e'
+
+american dad:
+  canonical: "American Dad!"
+
+American Dad:
+  canonical: "American Dad!"
+
+castle 2009:
+  canonical: "Castle (2009)"
+
+legends 2014:
+  canonical: "Legends (2014)"
+
+Legends 2014:
+  canonical: "Legends (2014)"
+
+csi:
+  canonical: "CSI: Crime Scene Investigation"
+  output: "CSI, Crime Scene Investigation"
+
+doctor who 2005:
+  canonical: "Doctor Who (2005)"
+Doctor Who 2015:
+  canonical: "Doctor Who (2005)"
+
+dracula 2013:
+  canonical: "Dracula (2013)"
+  output: "Dracula 2013"
+
+
+hawaii five-0:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+Hawaii Five-0 2010:
+  canonical: Hawaii Five-O
+  output: "Hawaii Five-0 (2010)"
+
+The Flash 2014:
+  canonical: "The Flash (2014)"
+  output: "The Flash (2014)"
+
+The Flash:
+  canonical: "The Flash (2014)"
+  output: "The Flash (2014)"
+
+the flash 2014:
+  canonical: "The Flash (2014)"
+  output: "The Flash (2014)"
+
+intelligence us:
+  canonical: "Intelligence (US)"
+  output: "Intelligence (US)"
+
+Marvel's Agents of S H I E L D:
+  canonical: "Marvel's Agents of S.H.I.E.L.D."
+  output: "Marvel's Agents of S.H.I.E.L.D."
+
+Marvels Agents of S H I E L D:
+  canonical: "Marvel's Agents of S.H.I.E.L.D."
+  output: "Marvel's Agents of S.H.I.E.L.D."
+
+marvels agents of s h i e l d:
+  canonical: "Marvel's Agents of S.H.I.E.L.D."
+  output: "Marvel's Agents of S.H.I.E.L.D."
+
+A Young Doctors Notebook:
+  canonical: "A Young Doctor's Notebook"
+  output: "A Young Doctor's Notebook"
+
+Bears Wild Weekend With:
+  canonical: "Bear's Wild Weekend with..."
+  output: "Bear's Wild Weekend with..."
+
+Gordon Ramsays Ultimate Cookery Course:
+  canonical: "Gordon Ramsay's Ultimate Cookery Course"
+  output: "Gordon Ramsay's Ultimate Cookery Course"
+
+Babylon 2014:
+  canonical: "Babylon (2014)"
+  output: "Babylon (2014)"
+
+Da Vincis Demons:
+  canonical: "Da Vinci's Demons"
+  output: "Da Vinci's Demons"
+
+Dracula 2013:
+  canonical: "Dracula (2013)"
+  output: "Dracula (2013)"
+
+Jamies 30 Minute Meals:
+  canonical: "Jamie's 30 Minute Meals"
+  output: "Jamie's 30 Minute Meals"
+Mrs Browns Boys:
+  canonical: Mrs Brown's Boys
+  output: Mrs. Brown's Boys
+
+Richard Hammonds Crash Course:
+  canonical: Richard Hammond's Crash Course
+
+the americans 2013:
+  canonical: The Americans (2013)
+
+The Killing(2011):
+  canonical: The Killing (US)
+The Killing:
+  canonical: The Killing (US)
+
+The Muppets Tonight:
+  canonical: Muppets Tonight
+
+Man vs  Wild:
+  canonical: "Man vs. Wild"
+
+"Lock N' Load with R  Lee Ermey":
+  canonical: "Lock N' Load with R. Lee Ermey"
+
+Bear's Wild Weekend with:
+  canonical: Bear's Wild Weekend with...
+
+hawaii five-0 2010:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+Hawaii Five-0 2010:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+hawaii five O 2010:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+hawaii five 0 2010:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+Hawaii Five-0:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+Hawaii Five-O:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+Hawaii Five-0 (2010):
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+Hawaii Five O:
+  canonical: Hawaii Five-0
+  output: "Hawaii Five-0 (2010)"
+
+
+From Dusk Till Dawn:
+  canonical: "From Dusk Till Dawn: The Series"
+
+From Dusk Till Dawn The Series:
+  canonical: "From Dusk Till Dawn: The Series"
+
+from dusk till dawn the series:
+  canonical: "From Dusk Till Dawn: The Series"
+
+from dusk till dawn:
+  canonical: "From Dusk Till Dawn: The Series"
+
+da vincis demons:
+  canonical: "Da Vinci's Demons"
+
+NCIS Los Angeles:
+  canonical: "NCIS: Los Angeles"
+  output: "NCIS Los Angeles"
+
+ncis los angeles:
+  canonical: "NCIS: Los Angeles"
+  output: "NCIS Los Angeles"
+
+NCIS&#58; Los Angeles:
+  canonical: "NCIS: Los Angeles"
+  output: "NCIS Los Angeles"
+
+ncis new orleans:
+  canonical: "NCIS: New Orleans"
+  format: "NCIS New Orleans"
+
+Marvels Agent Carter:
+  canonical: "Marvel's Agent Carter"
+  format: "Marvels Agent Carter"
+
+Marvel&#27;s Agent Carter:
+  canonical: "Marvel's Agent Carter"
+  format: "Marvels Agent Carter"
+
+The Good Witch:
+  canonical: Good Witch
+  format: Good Witch
+
+Thunderbirds Are Go:
+  canonical: Thunderbirds Are Go!
+  format: Thunderbirds Are Go!
+
+thunderbirds are go:
+  canonical: Thunderbirds Are Go!
+  format: Thunderbirds Are Go!
+
+Thunderbirds Are Go 2015:
+  canonical: Thunderbirds Are Go!
+  format: Thunderbirds Are Go!
+
+miss fishers murder mysteries:
+  canonical: "Miss Fisher's Murder Mysteries"
+  format: "Miss Fisher's Murder Mysteries"
+
+Jonathan Strange and Mr Norrell:
+  canonical: "Jonathan Strange & Mr Norrell"
+  format: "Jonathan Strange and Mr Norrell"
+
+jonathan strange and mr norrell:
+  canonical: "Jonathan Strange & Mr Norrell"
+  format: "Jonathan Strange and Mr Norrell"
+
+Jonathan Strange And Mr Norrell:
+  canonical: "Jonathan Strange & Mr Norrell"
+  format: "Jonathan Strange and Mr Norrell"
+
+Mr Robot:
+  canonical: "Mr. Robot"
+
+Aquarius US:
+  canonical: Aquarius (2015)
+
+Aquarius:
+  canonical: Aquarius (2015)
+
+strike back legacy:
+  canonical: Strike Back
+
+proof us:
+  canonical: "Proof (2015)"
+
+public morals 2015:
+  canonical: "public morals (2015)"
+
+the player 2015:
+  canonical: "The Player (2015)"
+
+fungus the bogeyman 2015:
+  canonical: "Fungus The Bogeyman (2015)"
+
+war and peace:
+  canonical: "War and Peace (2016)"
+
+war and peace 2016:
+  canonical: "War and Peace (2016)"
+
+DCs Legends of Tomorrow:
+  canonical: "DC's Legends of Tomorrow"
+
+The XFiles:
+  canonical: "The X-Files"
+
+Top Gear Extra Gear:
+  canonical: "Top Gear: Extra Gear"
+
+top gear extra gear:
+  canonical: "Top Gear: Extra Gear"
+
+Roots 2016:
+  canonical: "Roots (2016)"
+
+MacGyver 2016:
+  canonical: "MacGyver (2016)"
+
+Dirk Gentlys Holistic Detective Agency:
+  canonical: "Dirk Gently's Holistic Detective Agency"
+
+Zapped:
+  canonical: "Zapped!"

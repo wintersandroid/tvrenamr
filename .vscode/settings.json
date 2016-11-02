@@ -2,6 +2,12 @@
 {
     "python.unitTest.pyTestEnabled": true,
     "python.unitTest.unittestEnabled": false,
-    "python.unitTest.nosetestsEnabled": false
-    
+    "python.unitTest.nosetestsEnabled": false,
+     "editor.renderIndentGuides": true,
+    "files.autoSave": "onFocusChange",
+    "html.suggest.angular1": false,
+
+    // Configures if the built-in HTML language support suggests Ionic tags, properties and values.
+    "html.suggest.ionic": false
+
 }

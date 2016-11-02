@@ -140,7 +140,7 @@ class File(object):
         if episode:
             if self.episodes:
                 for e in self.episodes:
-                    e.number = int(episode)
+                    e.number = int(episode.number)
             else:
                 self.episodes = [Episode(file_=self, number=episode)]
 
@@ -410,5 +410,8 @@ class TvRenamr(object):
             ('.h.264', ''),
         )
         for target, replacement in items:
-            filename = filename.replace(target, replacement)
+            if target == ':' and filename.find(target) == 1:
+                pass
+            else:
+                filename = filename.replace(target, replacement)
         return filename
