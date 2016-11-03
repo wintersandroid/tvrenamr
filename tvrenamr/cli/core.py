@@ -40,13 +40,14 @@ log = logging.getLogger('CLI')
 @click.option('--show', help="Set the show's name (will search for this name).")
 @click.option('--show-override', help="Override the show's name (only replaces the show's name in the final file)")   # noqa
 @click.option('--specials', help='Set the show\'s specials folder (defaults to "Season 0")')
-@click.option('-t', '--the', is_flag=True, help="Set the position of 'The' in a show's name to the end of the show name")   # noqa
+@click.option('-t', '--the', is_flag=True, default=None, help="Set the position of 'The' in a show's name to the end of the show name")   # noqa
+@click.option('-y','--copy', is_flag=True, default=None, help="Copy the file do not move")   # noqa
 @click.argument('paths', nargs=-1, required=False, type=click.Path(exists=True))
 def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=too-many-arguments
            ignore_filelist, log_file, log_level, name,  # pylint: disable-msg=too-many-arguments
            no_cache, output_format, organise, partial,  # pylint: disable-msg=too-many-arguments
            quiet, recursive, rename_dir, regex, season,  # pylint: disable-msg=too-many-arguments
-           show, show_override, specials, the, paths):  # pylint: disable-msg=too-many-arguments
+           show, show_override, specials, the, copy, paths):  # pylint: disable-msg=too-many-arguments
 
     if debug:
         log_level = 10
@@ -60,7 +61,7 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
 
     for current_dir, filename in build_file_list(paths, recursive, ignore_filelist):
         try:
-            tv = TvRenamr(current_dir, debug, dry_run, no_cache)
+            tv = TvRenamr(current_dir, config, debug, dry_run, no_cache)
 
             _file = File(**tv.extract_details_from_file(
                 filename,
@@ -90,6 +91,8 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
 
             show = config.get_output(_file.show_name, override=show_override)
             the = config.get('the', show=_file.show_name, override=the)
+            copy = config.get('copy',_file.show_name, default=False, override=copy)
+
             _file.show_name = tv.format_show_name(show, the=the)
 
             _file.set_output_format(config.get(
@@ -124,7 +127,8 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
                 specials_folder=specials_folder,
             )
 
-            tv.rename(filename, path)
+            
+            tv.rename(filename, path, copy)
         except errors.NetworkException:
             if dry_run or debug:
                 stop_dry_run(log)

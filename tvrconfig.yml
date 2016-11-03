@@ -2,8 +2,9 @@ defaults:
   format: '%n.S%s{2}E%e{2}.%t%x'
   library: thetvdb
   organise: true
-  renamed: /share/TV
+  renamed: /home/mathew/Videos/Dest
   the: false
+  copy: true
 
 '24':
   format: '%n - %s%e'

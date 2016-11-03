@@ -251,7 +251,7 @@ class TvRenamr(object):
 
         return path
 
-    def rename(self, current_filepath, destination_filepath):
+    def rename(self, current_filepath, destination_filepath, copy):
         """Renames a file.
 
         This is more akin to the UNIX `mv` operation as the destination filepath
@@ -266,9 +266,16 @@ class TvRenamr(object):
         log.debug(destination_filepath)
         if not self.dry and not self.debug:
             source_filepath = os.path.join(self.working_dir, current_filepath)
-            shutil.move(source_filepath, destination_filepath)
+            if not copy:
+                shutil.move(source_filepath, destination_filepath)
+            else:
+                shutil.copy(source_filepath, destination_filepath)
+
         destination_file = os.path.split(destination_filepath)[1]
-        log.log(26, 'Renamed: "%s"', destination_file)
+        if not copy:
+            log.log(26, 'Renamed: "%s"', destination_file)
+        else:
+            log.log(26, 'Copied: "%s"', destination_file)
         return destination_filepath
 
     def _build_credentials(self, fn, matches):
