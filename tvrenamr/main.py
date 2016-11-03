@@ -246,7 +246,7 @@ class TvRenamr(object):
 
         log.log(22, 'Directory: %s', rename_dir)
         filename=self._sanitise_filename(_file.name)
-        path = os.path.join(rename_dir, _file.name)
+        path = os.path.join(rename_dir, filename)
         log.debug('Full path: %s', path)
 
         return path
@@ -408,6 +408,8 @@ class TvRenamr(object):
         items = (
             ('_', '.'),
             (':', ''),
+            (',', ''),
+            ('?', ''),
             ('..', '.'),
             ('.720p', ''),
             ('.720', ''),
