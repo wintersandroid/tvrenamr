@@ -420,7 +420,7 @@ class TvRenamr(object):
         )
         for target, replacement in items:
             if target == ':' and filename.find(target) == 1:
-                pass
+                filename = "%s%s" % (filename[0:3] , filename[3:len(filename)].replace(target, replacement))
             else:
                 filename = filename.replace(target, replacement)
         return filename
