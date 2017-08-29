@@ -55,11 +55,20 @@ class TVDB(object):
         return episode
 
     def get_show_id_from_xml(self, xml):
+        self.log.debug('Finding Series ID in XML %s',self.show);
+
         for name in xml.findall('Series'):
             show = name.findtext('SeriesName')
+            self.log.debug('SeriesName %s',show)
             if show.lower() == self.show.lower():
                 self.log.debug('Series chosen: %s', show)
                 return name.findtext('seriesid'), show
+            show = name.findtext('AliasNames')
+            self.log.debug('AliasNames %s',show)
+            if show.lower() == self.show.lower():
+                self.log.debug('Series chosen: %s', show)
+                return name.findtext('seriesid'), show
+
         raise errors.ShowNotFoundException(self.show)
 
     def request_show_id(self, cache):
@@ -92,7 +101,7 @@ class TVDB(object):
             raise errors.EpisodeNotFoundException(*args)
         self.log.debug('XML: Retreived')
 
-        self.log.debug('XML: Attempting to parse')
+        self.log.debug('XML: Attempting to parse 2')
         try:
             tree = fromstring(req.content)
         except ParseError:
@@ -124,14 +133,14 @@ class TVDB(object):
         except UnicodeEncodeError:
             pass
 
-        self.log.debug('XML: Attempting to parse')
+        self.log.debug('XML: Attempting to parse 1 %s',xml)
         try:
             tree = fromstring(xml)
         except ParseError:
             raise errors.InvalidXMLException(self.show)
         if tree is None or len(tree) is 0:
             raise errors.InvalidXMLException(self.show)
-        self.log.debug('XML: Parsed')
+        self.log.debug('XML: Parsed 1')
 
         self.show_id, self.show = self.get_show_id_from_xml(tree)
         self.log.debug('Retrieved show id: %s', self.show_id)
