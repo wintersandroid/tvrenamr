@@ -13,6 +13,16 @@ The defaults segment should be self-explanatory but I'll list them just for
 completeness. The listed values are the assumed defaults if any of the options
 are not added.
 
+Copy
+~~~~
+Copy instead of moving the files.
+
+Boolean.
+
+.. code-block:: yaml
+
+        copy: true
+
 Format
 ~~~~~~
 The output format for files to be renamed to.
@@ -47,6 +57,16 @@ The directory to move your renamed files to.
 .. code-block:: yaml
 
     renamed: /Volumes/Media/TV/
+
+Symlink
+~~~~~~~
+Create symbolic links instead of moving the files.
+
+Boolean.
+
+.. code-block:: yaml
+
+        symlink: true
 
 The
 ~~~
@@ -119,9 +139,11 @@ The output format to use when writing the new filename.
 .. code-block:: yaml
 
     defaults:
+      copy: false
       format: '%n - %s%e - %t%x'
       organise: yes
       renamed: /Volumes/Media/TV/
+      symlink: true
       the: true
 
     '24':

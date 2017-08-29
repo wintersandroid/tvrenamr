@@ -3,6 +3,37 @@
 Changelog
 =========
 
+v4.4.0
+------
+
+- Add option to copy files to destination thanks to @ata2001
+
+
+v4.3.1
+------
+
+- Fix debug logging thanks to @ymage
+
+
+v4.3.0
+------
+
+- Add symlink option support to the config thanks to @ata2001
+- Fix --[no-]organise & --the arg parsing support thanks to @ata2001
+
+
+v4.2.0
+------
+
+- Symlink support fixes for Windows & Python 2 thanks to @ata2001
+
+
+v4.1.0
+------
+
+- Add symlink support thanks to @ata2001
+
+
 v3.6.2
 ------
 

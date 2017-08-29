@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import logging
+import sys
 import os
 import re
 import shutil
@@ -45,6 +46,9 @@ class Episode(object):
         if item is 'episode_2':
             return '0{}'.format(self.number)
         return object.__getattribute__(self, item)
+
+    def __int__(self):
+        return int(self.number)
 
     def __repr__(self):
         return 'Episode: {} (season {})'.format(self.number, self.file_.season)
@@ -181,12 +185,16 @@ class TvRenamr(object):
         fn = self._sanitise_filename(fn)
         log.log(22, 'Renaming: %s', fn)
 
+        # If we sanitise the filename we shall sanitise the regex too
+        if user_regex is not None:
+            user_regex = self._sanitise_filename(user_regex)
+
         regex = self._build_regex(user_regex, partial=partial)
+        log.debug('Attempting rename with: {}'.format(regex))
+
         matches = re.match(regex, fn)
         if not matches:
             raise errors.UnexpectedFormatException(fn)
-
-        log.debug('Renaming using: %s', regex)
 
         return self._build_credentials(fn, matches)
 
@@ -251,7 +259,7 @@ class TvRenamr(object):
 
         return path
 
-    def rename(self, current_filepath, destination_filepath, copy):
+    def rename(self, current_filepath, destination_filepath, copy=False, symlink=False):
         """Renames a file.
 
         This is more akin to the UNIX `mv` operation as the destination filepath
@@ -266,11 +274,20 @@ class TvRenamr(object):
         log.debug(destination_filepath)
         if not self.dry and not self.debug:
             source_filepath = os.path.join(self.working_dir, current_filepath)
-            if not copy:
-                shutil.move(source_filepath, destination_filepath)
-            else:
+            if copy:
                 shutil.copy(source_filepath, destination_filepath)
-
+            elif symlink:
+                # os.symlink doesn't work on windows with python < 3.3
+                if os.name == 'posix' or sys.version_info >= (3, 3):
+                    os.symlink(source_filepath, destination_filepath)
+                elif os.name == 'nt':
+                    import ctypes
+                    source_filepath = source_filepath.decode('UTF-8')
+                    kernel_dll = ctypes.windll.LoadLibrary("kernel32.dll")
+                    kernel_dll.CreateSymbolicLinkW(destination_filepath,
+                                                   source_filepath, 0)
+            else:
+                shutil.move(source_filepath, destination_filepath)
         destination_file = os.path.split(destination_filepath)[1]
         if not copy:
             log.log(26, 'Renamed: "%s"', destination_file)
@@ -340,7 +357,7 @@ class TvRenamr(object):
         %e - \d{2} - The episode number.
 
         """
-        series = r"(?P<show_name>[\w\s.',_-]+)"
+        series = r"(?P<show_name>[\w\s\(\).',_-]+)"
         season = r"(?P<season>\d{1,2})"
         episode = r"(?P<episode>\d{2})"
         second_episode = r".E?(?P<episode2>\d{2})*"
@@ -360,7 +377,7 @@ class TvRenamr(object):
         if '%s{' in regex:
             log.debug('Season digit number found')
             r = regex.split('%s{')[1][:1]
-            log.debug('Specified % season digits', r)
+            log.debug('Specified %s season digits', r)
             s = season.replace('1,2', r)
             regex = regex.replace('%s{' + r + '}', s)
             log.debug('Season regex set: %s', s)
@@ -406,6 +423,7 @@ class TvRenamr(object):
         in filenames by appearing before or after the season/episode block.
         """
         items = (
+            ('[', '.'),
             ('_', '.'),
             (':', ''),
             (',', ''),

@@ -4,11 +4,12 @@ from __future__ import absolute_import
 
 import functools
 import logging
+import os
 import sys
 
 import click
 
-from tvrenamr import errors
+from tvrenamr import __version__, errors
 from tvrenamr.cli.helpers import (build_file_list, get_config, start_dry_run,
                                   stop_dry_run)
 from tvrenamr.logs import start_logging
@@ -17,8 +18,17 @@ from tvrenamr.main import File, TvRenamr
 log = logging.getLogger('CLI')
 
 
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+
+    click.echo(__version__)
+    ctx.exit()
+
+
 @click.command()
 @click.option('--config', type=click.Path(), help='Select a location for your config file. If the path is invalid the default locations will be used.')  # noqa
+@click.option('--copy/--no-copy', is_flag=True, default=None, help="Copy instead of moving the files.") # noqa
 @click.option('-c', '--canonical', help='Set the show\'s canonical name to use when performing the online lookup.')   # noqa
 @click.option('--debug', is_flag=True)
 @click.option('-d', '--dry-run', is_flag=True, help='Dry run your renaming.')
@@ -30,7 +40,7 @@ log = logging.getLogger('CLI')
 @click.option('-n', '--name', help="Set the episode's name.")
 @click.option('--no-cache', is_flag=True, help='Force all renames to ignore the cache.')
 @click.option('-o', '--output-format', help='Set the output format for the episodes being renamed.')
-@click.option('--organise/--no-organise', default=True, help='Organise renamed files into folders based on their show name and season number. Can be explicitly disabled.')   # noqa
+@click.option('--organise/--no-organise', default=None, help='Organise renamed files into folders based on their show name and season number. Can be explicitly disabled.')   # noqa
 @click.option('-p', '--partial', is_flag=True, help='Allow partial regex matching of the filename.')
 @click.option('-q', '--quiet', is_flag=True, help="Don't output logs to the command line")
 @click.option('-r', '--recursive', is_flag=True, help='Recursively lookup files in a given directory')   # noqa
@@ -40,28 +50,35 @@ log = logging.getLogger('CLI')
 @click.option('--show', help="Set the show's name (will search for this name).")
 @click.option('--show-override', help="Override the show's name (only replaces the show's name in the final file)")   # noqa
 @click.option('--specials', help='Set the show\'s specials folder (defaults to "Season 0")')
+@click.option('--symlink/--no-symlink', is_flag=True, default=None, help="Create symbolic links instead of moving the files.") # noqa
 @click.option('-t', '--the', is_flag=True, default=None, help="Set the position of 'The' in a show's name to the end of the show name")   # noqa
-@click.option('-y','--copy', is_flag=True, default=None, help="Copy the file do not move")   # noqa
+@click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.argument('paths', nargs=-1, required=False, type=click.Path(exists=True))
-def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=too-many-arguments
-           ignore_filelist, log_file, log_level, name,  # pylint: disable-msg=too-many-arguments
-           no_cache, output_format, organise, partial,  # pylint: disable-msg=too-many-arguments
-           quiet, recursive, rename_dir, regex, season,  # pylint: disable-msg=too-many-arguments
-           show, show_override, specials, the, copy, paths):  # pylint: disable-msg=too-many-arguments
+def rename(config, copy, canonical, debug, dry_run,  # pylint: disable-msg=too-many-arguments
+           episode, ignore_filelist, log_file,  # pylint: disable-msg=too-many-arguments
+           log_level, name, no_cache, output_format,  # pylint: disable-msg=too-many-arguments
+           organise, partial, quiet, recursive,  # pylint: disable-msg=too-many-arguments
+           rename_dir, regex, season, show,  # pylint: disable-msg=too-many-arguments
+           show_override, specials, symlink, the,  # pylint: disable-msg=too-many-arguments
+           paths):  # pylint: disable-msg=too-many-arguments
 
     if debug:
         log_level = 10
     start_logging(log_file, log_level, quiet)
-    #logger = functools.partial(log.info, level=26)
+    logger = functools.partial(log.log, 26)
 
     if dry_run or debug:
-        start_dry_run(log)
+        start_dry_run(logger)
 
-    config = get_config(config)
+    if copy and symlink:
+        raise click.UsageError("You can't use --copy and --symlink at the same time.")
+
+    if not paths:
+        paths = [os.getcwd()]
 
     for current_dir, filename in build_file_list(paths, recursive, ignore_filelist):
         try:
-            tv = TvRenamr(current_dir, config, debug, dry_run, no_cache)
+            tv = TvRenamr(current_dir, debug, dry_run, no_cache)
 
             _file = File(**tv.extract_details_from_file(
                 filename,
@@ -72,53 +89,66 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
             _file.user_overrides(show, season, episode)
             _file.safety_check()
 
-            _canonical = ''
+            conf = get_config(config)
 
-            for _episode in _file.episodes:
-                _canonical = config.get(
+            for ep in _file.episodes:
+                canonical = conf.get(
                     'canonical',
                     _file.show_name,
-                    default=_episode.file_.show_name,
+                    default=ep.file_.show_name,
                     override=canonical
                 )
 
                 # TODO: Warn setting name will override *all* episodes
-                _episode.title = tv.retrieve_episode_title(
-                    _episode,
-                    canonical=_canonical,
+                ep.title = tv.retrieve_episode_title(
+                    ep,
+                    canonical=canonical,
                     override=name,
                 )
 
-            show = config.get_output(_file.show_name, override=show_override)
-            the = config.get('the', show=_file.show_name, override=the)
-            copy = config.get('copy',_file.show_name, default=False, override=copy)
+                # TODO: make this a sanitisation method on ep?
+                ep.title = ep.title.replace('/', '-')
 
+            show = conf.get_output(_file.show_name, override=show_override)
+            the = conf.get('the', show=_file.show_name, override=the)
             _file.show_name = tv.format_show_name(show, the=the)
 
-            _file.set_output_format(config.get(
+            _file.set_output_format(conf.get(
                 'format',
                 _file.show_name,
                 default=_file.output_format,
                 override=output_format
-            ),config)
+            ))
 
-            organise = config.get(
-                'organise',
+            copy = conf.get(
+                'copy',
                 _file.show_name,
                 default=False,
+                override=copy
+            )
+            organise = conf.get(
+                'organise',
+                _file.show_name,
+                default=True,
                 override=organise
             )
-            rename_dir = config.get(
+            rename_dir = conf.get(
                 'renamed',
                 _file.show_name,
                 default=current_dir,
                 override=rename_dir
             )
-            specials_folder = config.get(
+            specials_folder = conf.get(
                 'specials_folder',
                 _file.show_name,
                 default='Season 0',
                 override=specials,
+            )
+            symlink = conf.get(
+                'symlink',
+                _file.show_name,
+                default=False,
+                override=symlink
             )
             path = tv.build_path(
                 _file,
@@ -127,11 +157,10 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
                 specials_folder=specials_folder,
             )
 
-            
-            tv.rename(filename, path, copy)
+            tv.rename(filename, path, copy, symlink)
         except errors.NetworkException:
             if dry_run or debug:
-                stop_dry_run(log)
+                stop_dry_run(logger)
             sys.exit(1)
         except (AttributeError,
                 errors.EmptyEpisodeTitleException,
@@ -157,5 +186,4 @@ def rename(config, canonical, debug, dry_run, episode,  # pylint: disable-msg=to
             log.info('')
 
     if dry_run or debug:
-        stop_dry_run(log)
-
+        stop_dry_run(logger)
