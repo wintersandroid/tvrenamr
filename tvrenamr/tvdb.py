@@ -133,7 +133,7 @@ class TVDB(object):
         except UnicodeEncodeError:
             pass
 
-        self.log.debug('XML: Attempting to parse 1 %s',xml)
+        # self.log.debug('XML: Attempting to parse 1 %s',xml)
         try:
             tree = fromstring(xml)
         except ParseError:
