@@ -1,63 +1,19 @@
 {
-    "version": "0.2.0",
+    "version": "2.0.0",
     "configurations": [
+
         {
             "name": "Python",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
-            "pythonPath": "${config.python.pythonPath}",
-            "program": "${file}",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ]
-        },
-            {
-            "name": "Exec Test",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config.python.pythonPath}",
+            "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceRoot}/xyz.py",
             "debugOptions": [
                 "WaitOnAbnormalExit",
                 "WaitOnNormalExit",
                 "RedirectOutput"
             ]
-        },
-        {
-            "name": "Integrated Terminal/Console",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config.python.pythonPath}",
-            "program": "${workspaceRoot}/tvr",
-            "args": [
-                "-d",
-                "-r",
-                "~/Temp/Chance.S01E01.720p.WEB.H264-DEFLATE[eztv].mkv"
-            ],
-            "console": "integratedTerminal",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
-            ]
-        },
-        {
-            "name": "External Terminal/Console",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${config.python.pythonPath}",
-            "program": "${file}",
-            "console": "externalTerminal",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
-            ]
-        }
-     
-    ]
+        }   
+      ]
 }

@@ -34,9 +34,8 @@ def print_version(ctx, param, value):
 @click.option('-d', '--dry-run', is_flag=True, help='Dry run your renaming.')
 @click.option('-e', '--episode', type=int, help='Set the episode number. Currently this will cause errors when working with more than one file.')  # noqa
 @click.option('--ignore-filelist', type=tuple, default=())
-@click.option('--log-file', type=click.Path(exists=True), help='Set the log file location.')
+@click.option('--log-file', type=click.Path(exists=False), help='Set the log file location.')
 @click.option('-l', '--log-level', help='Set the log level. Options: short, minimal, info and debug.')   # noqa
-@click.option('--log-file', type=click.Path(exists=True), help='Set the log file location.')
 @click.option('-n', '--name', help="Set the episode's name.")
 @click.option('--no-cache', is_flag=True, help='Force all renames to ignore the cache.')
 @click.option('-o', '--output-format', help='Set the output format for the episodes being renamed.')
@@ -68,7 +67,7 @@ def rename(config, copy, canonical, debug, dry_run,  # pylint: disable-msg=too-m
     logger = functools.partial(log.log, 26)
 
     if dry_run or debug:
-        start_dry_run(logger)
+        start_dry_run(log)
 
     if copy and symlink:
         raise click.UsageError("You can't use --copy and --symlink at the same time.")
@@ -186,4 +185,4 @@ def rename(config, copy, canonical, debug, dry_run,  # pylint: disable-msg=too-m
             log.info('')
 
     if dry_run or debug:
-        stop_dry_run(logger)
+        stop_dry_run(log)
