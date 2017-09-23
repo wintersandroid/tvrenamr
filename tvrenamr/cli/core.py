@@ -29,7 +29,7 @@ def print_version(ctx, param, value):
 @click.command()
 @click.option('--config', type=click.Path(), help='Select a location for your config file. If the path is invalid the default locations will be used.')  # noqa
 @click.option('--copy/--no-copy', is_flag=True, default=None, help="Copy instead of moving the files.") # noqa
-@click.option('-c', '--canonical', help='Set the show\'s canonical name to use when performing the online lookup.')   # noqa
+@click.option('-c', '--canonical','canonical_arg', help='Set the show\'s canonical name to use when performing the online lookup.')   # noqa
 @click.option('--debug', is_flag=True)
 @click.option('-d', '--dry-run', is_flag=True, help='Dry run your renaming.')
 @click.option('-e', '--episode', type=int, help='Set the episode number. Currently this will cause errors when working with more than one file.')  # noqa
@@ -53,7 +53,7 @@ def print_version(ctx, param, value):
 @click.option('-t', '--the', is_flag=True, default=None, help="Set the position of 'The' in a show's name to the end of the show name")   # noqa
 @click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.argument('paths', nargs=-1, required=False, type=click.Path(exists=True))
-def rename(config, copy, canonical, debug, dry_run,  # pylint: disable-msg=too-many-arguments
+def rename(config, copy, canonical_arg, debug, dry_run,  # pylint: disable-msg=too-many-arguments
            episode, ignore_filelist, log_file,  # pylint: disable-msg=too-many-arguments
            log_level, name, no_cache, output_format,  # pylint: disable-msg=too-many-arguments
            organise, partial, quiet, recursive,  # pylint: disable-msg=too-many-arguments
@@ -95,7 +95,7 @@ def rename(config, copy, canonical, debug, dry_run,  # pylint: disable-msg=too-m
                     'canonical',
                     _file.show_name,
                     default=ep.file_.show_name,
-                    override=canonical
+                    override=canonical_arg
                 )
 
                 # TODO: Warn setting name will override *all* episodes
