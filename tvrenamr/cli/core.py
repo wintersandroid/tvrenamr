@@ -60,7 +60,7 @@ def rename(config, copy, canonical_arg, debug, dry_run,  # pylint: disable-msg=t
            rename_dir, regex, season, show,  # pylint: disable-msg=too-many-arguments
            show_override, specials, symlink, the,  # pylint: disable-msg=too-many-arguments
            paths):  # pylint: disable-msg=too-many-arguments
-
+    _wasAnError = False
     if debug:
         log_level = 10
     start_logging(log_file, log_level, quiet)
@@ -171,6 +171,7 @@ def rename(config, copy, canonical_arg, debug, dry_run,  # pylint: disable-msg=t
                 errors.PathExistsException,
                 errors.ShowNotFoundException,
                 errors.UnexpectedFormatException) as e:
+            _wasAnError = True
             continue
         except Exception as e:
             if debug:
@@ -179,10 +180,14 @@ def rename(config, copy, canonical_arg, debug, dry_run,  # pylint: disable-msg=t
             for msg in e.args:
                 log.critical('Error: %s', msg)
             sys.exit(1)
-
         # if we're not doing a dry run add a blank line for clarity
         if not (debug and dry_run):
             log.info('')
 
     if dry_run or debug:
         stop_dry_run(log)
+
+    if _wasAnError:
+        sys.exit(1)
+    else:
+        sys.exit(0)

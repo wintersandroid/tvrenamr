@@ -2,3 +2,5 @@ requests
 minimock
 mock
 pytest
+click
+defusedxml

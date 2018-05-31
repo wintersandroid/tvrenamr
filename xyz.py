@@ -10,5 +10,7 @@ sys.argv.append('DEBUG')
 sys.argv.append('--dry-run')
 sys.argv.append('--config=tvrconfig.yml')
 sys.argv.append('--log-file=tvr.log')
-sys.argv.append('/run/user/1000/gvfs/smb-share:server=nas,share=download/transmission/completed')
-rename()  # pylint: disable=E1120
+sys.argv.append('--rename-dir=/tmp')
+# sys.argv.append('CHANGELOG.rst')
+sys.argv.append('the.handmaids.tale.s02e07.internal.1080p.web.h264-bamboozle.mkv')
+print (rename())  # pylint: disable=E1120

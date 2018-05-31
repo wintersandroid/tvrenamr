@@ -2,7 +2,7 @@ defaults:
   format: '%n.S%s{2}E%e{2}.%t%x'
   library: thetvdb
   organise: true
-  renamed: /home/mathew/Videos/Dest
+  renamed: /mnt
   the: false
   copy: true
 
@@ -37,14 +37,6 @@ dracula 2013:
   canonical: "Dracula (2013)"
   output: "Dracula 2013"
 
-
-hawaii five-0:
-  canonical: Hawaii Five-0
-  output: "Hawaii Five-0 (2010)"
-
-Hawaii Five-0 2010:
-  canonical: Hawaii Five-O
-  output: "Hawaii Five-0 (2010)"
 
 The Flash 2014:
   canonical: "The Flash (2014)"
@@ -128,33 +120,45 @@ Man vs  Wild:
 Bear's Wild Weekend with:
   canonical: Bear's Wild Weekend with...
 
-hawaii five-0 2010:
-  canonical: Hawaii Five-0
+hawaii five-0:
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 
 Hawaii Five-0 2010:
-  canonical: Hawaii Five-0
-  output: "Hawaii Five-0 (2010)"
-
-hawaii five O 2010:
-  canonical: Hawaii Five-0
-  output: "Hawaii Five-0 (2010)"
-
-hawaii five 0 2010:
-  canonical: Hawaii Five-0
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 
 Hawaii Five-0:
-  canonical: Hawaii Five-0
+  canonical: Hawaii Five-0 (2010)
+  output: "Hawaii Five-0 (2010)"
+
+hawaii five-0 2010:
+  canonical: Hawaii Five-0 (2010)
+  output: "Hawaii Five-0 (2010)"
+
+Hawaii Five-0 2010:
+  canonical: Hawaii Five-0 (2010)
+  output: "Hawaii Five-0 (2010)"
+
+hawaii five O 2010:
+  canonical: Hawaii Five-0 (2010)
+  output: "Hawaii Five-0 (2010)"
+
+hawaii five 0 2010:
+  canonical: Hawaii Five-0 (2010)
+  output: "Hawaii Five-0 (2010)"
+
+Hawaii Five-0:
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 Hawaii Five-O:
-  canonical: Hawaii Five-0
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 Hawaii Five-0 (2010):
-  canonical: Hawaii Five-0
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 Hawaii Five O:
-  canonical: Hawaii Five-0
+  canonical: Hawaii Five-0 (2010)
   output: "Hawaii Five-0 (2010)"
 
 
@@ -232,6 +236,9 @@ Jonathan Strange And Mr Norrell:
 Mr Robot:
   canonical: "Mr. Robot"
 
+mr robot:
+  canonical: "Mr. Robot"
+
 Aquarius US:
   canonical: Aquarius (2015)
 
@@ -243,10 +250,10 @@ strike back legacy:
 
 proof us:
   canonical: "Proof (2015)"
-
+  
 public morals 2015:
   canonical: "public morals (2015)"
-
+  
 the player 2015:
   canonical: "The Player (2015)"
 
@@ -255,12 +262,13 @@ fungus the bogeyman 2015:
 
 war and peace:
   canonical: "War and Peace (2016)"
-
+  
 war and peace 2016:
   canonical: "War and Peace (2016)"
 
 DCs Legends of Tomorrow:
   canonical: "DC's Legends of Tomorrow"
+  format: "DC's Legends of Tomorrow"
 
 The XFiles:
   canonical: "The X-Files"
@@ -283,8 +291,42 @@ Dirk Gentlys Holistic Detective Agency:
 Zapped:
   canonical: "Zapped!"
 
-Glitch:
-  canonical: "Glitch (2015)"
+James May The Reassembler:
+  canonical: "James May: The Reassembler"
+
+The Handmaids Tale:
+  canonical: "The Handmaid's Tale"
+
+the handmaids tale:
+  canonical: "The Handmaid's Tale"
 
 glitch:
   canonical: "Glitch (2015)"
+
+philip k dicks electric dreams:
+  canonical: "Philip K. Dick's Electric Dreams"
+
+Philip K Dick's Electric Dreams:
+  canonical: "Philip K. Dick's Electric Dreams"
+
+S W A T 2017:
+  canonical: "S.W.A.T. (2017)"
+
+S W A T:
+  canonical: "S.W.A.T. (2017)"
+
+Marvels Runaways:
+  canonical: "Marvel's Runaways"
+
+marvels runaways:
+  canonical: "Marvel's Runaways"
+
+happy:
+  canonical: "Happy!"
+
+Happy 2017:
+  canonical: "Happy!"
+
+Happy:
+  canonical: "Happy!"
+
